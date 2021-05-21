@@ -1,0 +1,13 @@
+PYTHON_WHEEL_VERSIONS="3.8"
+inherit python-wheel
+
+NAME="git-review"
+VERSION=2.1.0
+RELEASE=1
+CATEGORY="Devel"
+SUMMARY="Tool to submit code to Gerrit"
+DESCRIPTION="A git command for submitting branches to Gerrit"
+HOMEPAGE="https://docs.opendev.org/opendev/git-review/latest/"
+
+ARCH=noarch
+
