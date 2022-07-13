@@ -1,4 +1,4 @@
-PYTHON_WHEEL_VERSIONS="3.8"
+PYTHON_WHEEL_VERSIONS=3
 inherit python-wheel
 
 NAME="git-review"
