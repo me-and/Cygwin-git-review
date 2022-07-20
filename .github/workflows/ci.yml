@@ -22,11 +22,20 @@ jobs:
         with:
           set-safe-directory: false  # actions/checkout otherwise tries to use the wrong config file, per actions/checkout#767
         timeout-minutes: 1
-      - name: Load variables from the cygport file
-        id: cygport-vars
+      - name: Compute variables
+        id: variables
         run: |
           eval "$(cygport git-review.cygport vars PVR)"
           printf '::set-output name=pvr::%s\n' "$PVR"
+          case "$GITHUB_REF" in
+            'refs/heads/main')
+              tag="v$PVR";;
+            'refs/heads/prerelease')
+              tag="v${PVR}-prerelease.${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}";;
+            *)
+              tag=
+          esac
+          printf '::set-output name=tag::%s\n' "$tag"
         timeout-minutes: 1
       - name: Generate cygcheck output
         if: always()
@@ -68,14 +77,15 @@ jobs:
           echo 'cygwin.com,8.43.85.97 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBGqrxexIuyqmCVe33p1HuhUFzsXte5QZKb+BJlsRrvXOpUOJEW2S0kszyAiymeV7AXaYmHDKVRJpGVR+0ua0Xww=' >~/.ssh/known_hosts
         timeout-minutes: 1
       - name: Create a GitHub release
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/prerelease'
         uses: softprops/action-gh-release@v1
         with:
           draft: true
-          tag_name: v${{ steps.cygport-vars.outputs.pvr }}
+          tag_name: ${{ steps.variables.outputs.tag }}
           files: git-review-*/dist/git-review/*
           target_commitish: ${{ github.ref }}
-          body: v${{ steps.cygport-vars.outputs.pvr }}
+          body: ${{ steps.variables.outputs.tag }}
+          prerelease: ${{ github.ref == 'refs/heads/prerelease' }}
         timeout-minutes: 2
       - name: Mirror to Cygwin Git repositories
         if: github.ref == 'refs/heads/main'
